@@ -1,0 +1,44 @@
+projectName: proj
+git: somegitadress
+count: 4
+targets:
+  devel:
+    type: local
+    path: "/var/www/releases/"
+    publicPath: "/var/www/"
+    pipe:
+      - name: make links
+        type: links
+        args:
+          - from: "pathFrom"
+            to: "PathTo"
+          - from: "pathFrom2"
+            to: "PathTo"
+      - name: run cmd
+        type: command
+        args:
+          - command: "composer"
+            args:
+              - arg1
+              - arg2
+              - arg3
+          - command: "some command"
+            args:
+              - arg1
+              - arndsf
+              - sefse
+  prod:
+    type: host
+    host:
+      host: develhost
+      user: www-data
+    path: "/var/www/releases/"
+    pipe:
+      - name: make links
+        type: links
+        args:
+          - from: "pathFrom"
+            to: "PathTo"
+          - from: "pathFrom2"
+            to: "PathTo"
+
