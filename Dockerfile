@@ -8,7 +8,7 @@ RUN go mod download
 ## Copy the source from the current directory to the Working Directory inside the container
 COPY . .
 ## Build the Go app
-RUN GCO_ENABLED=0 GOOS=linux go build -o deployer ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o deployer ./cmd/main.go
 #ENTRYPOINT ./deployer
 
 ### Get small image
