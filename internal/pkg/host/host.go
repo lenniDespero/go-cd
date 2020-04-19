@@ -2,6 +2,7 @@ package host
 
 import "fmt"
 
+//Host structure for remote machines
 type Host struct {
 	Host     string `mapstructure:"host"`
 	Port     string `mapstructure:"port"`
@@ -11,13 +12,16 @@ type Host struct {
 	Key      string `mapstructure:"key"`
 }
 
+//Types of host auth
 var Types = map[string]bool{
 	"key":      true,
 	"password": true,
 }
 
+//Error implementation of package
 type Error string
 
+//Error implementation of package
 func (e Error) Error() string {
 	return string(e)
 }
@@ -32,6 +36,7 @@ const (
 	NoKeyError         Error = "no key in config"
 )
 
+//CheckConfig will check config for errors
 func (h Host) CheckConfig() error {
 	if h.Host == "" {
 		return NoHostError
@@ -59,6 +64,7 @@ func (h Host) CheckConfig() error {
 	return nil
 }
 
+//GetConnectionString prepare connection string to host
 func (h Host) GetConnectionString() string {
 	port := "22"
 	if h.Port != "" {

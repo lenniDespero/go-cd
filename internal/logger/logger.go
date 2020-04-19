@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// colors formats
 const (
 	InfoColor    = "\033[1;34m%s\033[0m"
 	NoticeColor  = "\033[1;36m%s\033[0m"

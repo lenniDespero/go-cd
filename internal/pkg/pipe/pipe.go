@@ -6,21 +6,29 @@ import (
 	"github.com/lenniDespero/go-cd/internal/pkg/link"
 )
 
+//Pipe struct for config
 type Pipe struct {
 	Name string        `mapstructure:"name"`
 	Type string        `mapstructure:"type"`
 	Args []interface{} `mapstructure:"args"`
 }
 
+//Types of pipe stages
 var Types = map[string]bool{
 	"links":   true,
 	"command": true,
 }
+
+//Names of pipe stages
 var Names = map[string]interface{}{"links": &link.Link{}, "command": &cmd.Cmd{}}
+
+//NamesInt return ArgsInterface for pipe stage
 var NamesInt = map[string]pkg.ArgsInterface{"links": &link.Link{}, "command": &cmd.Cmd{}}
 
+//Error implementation for package
 type Error string
 
+//Error implementation for package
 func (e Error) Error() string {
 	return string(e)
 }
@@ -33,6 +41,7 @@ const (
 	NoPipeArgs      Error = "no args in pipe"
 )
 
+//CheckConfig will check config for errors
 func (pipe Pipe) CheckConfig() error {
 	if pipe.Name == "" {
 		return NoPipeName

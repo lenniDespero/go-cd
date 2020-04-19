@@ -20,12 +20,14 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+//DeployLocal local deploy runner struct
 type DeployLocal struct {
 	conf     target.Target
 	tmpdir   string
 	timeName string
 }
 
+//InitDeployer prepare local deploy runner
 func InitDeployer(config target.Target) (*DeployLocal, error) {
 	return &DeployLocal{conf: config}, nil
 }
@@ -91,6 +93,7 @@ func (l *DeployLocal) UpdateSource(gitPath string) error {
 	return nil
 }
 
+//MakeLinks will make links to current release
 func (l *DeployLocal) MakeLinks() error {
 	logger.Debug("Make Links")
 	path, err := filepath.Abs(l.conf.Path)
@@ -109,6 +112,7 @@ func (l *DeployLocal) MakeLinks() error {
 	return nil
 }
 
+//RunPipe execute pipe stages
 func (l *DeployLocal) RunPipe() error {
 	logger.Debug("Run pipes work")
 	path, err := filepath.Abs(l.conf.Path)
@@ -143,6 +147,7 @@ func (l *DeployLocal) RunPipe() error {
 	return nil
 }
 
+//CleanUp work after work
 func (l *DeployLocal) CleanUp(cnt int) error {
 	logger.Debug("CleanUp work")
 	path, err := filepath.Abs(l.conf.Path)

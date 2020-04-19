@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+//Target struct for config
 type Target struct {
 	Type string      `mapstructure:"type"`
 	Host host.Host   `mapstructure:"host"`
@@ -20,13 +21,16 @@ type Target struct {
 	Pipe []pipe.Pipe `mapstructure:"pipe"`
 }
 
+//Types of targets
 var Types = map[string]bool{
 	"local": true,
 	"host":  true,
 }
 
+//Error implementation for package
 type Error string
 
+//Error implementation for package
 func (e Error) Error() string {
 	return string(e)
 }
@@ -40,6 +44,7 @@ const (
 	NoPipesError    Error = "no pipes in target"
 )
 
+//CheckConfig will check config for errors
 func (target Target) CheckConfig() error {
 	if target.Type == "" {
 		return NoTypeError

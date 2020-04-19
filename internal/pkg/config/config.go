@@ -1,6 +1,5 @@
 package config
 
-import "C"
 import (
 	"fmt"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+//Config - base config of deploy app
 type Config struct {
 	ProjectName string                   `mapstructure:"projectName"`
 	Git         string                   `mapstructure:"git"`
@@ -18,8 +18,10 @@ type Config struct {
 	Targets     map[string]target.Target `mapstructure:"targets"`
 }
 
+//Error implementation of package
 type Error string
 
+//Error implementation of package
 func (e Error) Error() string {
 	return string(e)
 }
@@ -32,6 +34,7 @@ const (
 	NoTargetsError Error = "no targets in config"
 )
 
+//ReadConfig from file and check for errors
 func ReadConfig(c *Config, configPath string) error {
 	viper.SetConfigFile(configPath)
 	err := viper.ReadInConfig()
@@ -51,6 +54,7 @@ func ReadConfig(c *Config, configPath string) error {
 	return nil
 }
 
+//CheckConfig will check config for errors
 func (c Config) CheckConfig() error {
 	if c.ProjectName == "" {
 		return NoNameError

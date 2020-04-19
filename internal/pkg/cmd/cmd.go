@@ -6,13 +6,16 @@ import (
 	"strings"
 )
 
+//Cmd part of config
 type Cmd struct {
 	Command string   `mapstructure:"command" json:"command"`
 	Args    []string `mapstructure:"args" json:"args"`
 }
 
+//Error type for package cmd
 type Error string
 
+//Error interface implementation
 func (e Error) Error() string {
 	return string(e)
 }
@@ -22,6 +25,7 @@ const (
 	NoCommandError Error = "no command"
 )
 
+//CheckConfig will check config for errors
 func (command Cmd) CheckConfig() error {
 	if command.Command == "" {
 		return NoCommandError
@@ -29,6 +33,7 @@ func (command Cmd) CheckConfig() error {
 	return nil
 }
 
+//ExecuteOnLocal run cmd on local target
 func (command Cmd) ExecuteOnLocal() error {
 	cmdString := command.Command
 	var args []string
@@ -44,6 +49,7 @@ func (command Cmd) ExecuteOnLocal() error {
 	return nil
 }
 
+//GetRemoteCommand prepare cmd string for remote machine
 func (command Cmd) GetRemoteCommand() string {
 	comString := []string{command.Command}
 	comString = append(comString, command.Args...)

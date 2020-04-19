@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+//Client struct for ssh
 type Client struct {
 	client *ssh.Client
 }
@@ -64,6 +65,7 @@ func Dial(network, addr string, config *ssh.ClientConfig) (*Client, error) {
 	}, nil
 }
 
+//Close connection
 func (c *Client) Close() error {
 	return c.client.Close()
 }
@@ -76,6 +78,7 @@ func (c *Client) Cmd(cmd string) *RemoteScript {
 	}
 }
 
+//RemoteScript is a wrap for command on remote machine
 type RemoteScript struct {
 	client *ssh.Client
 	script *bytes.Buffer
@@ -85,7 +88,7 @@ type RemoteScript struct {
 	stderr io.Writer
 }
 
-// Run
+// Run command on remote machine
 func (rs *RemoteScript) Run() error {
 	if rs.err != nil {
 		fmt.Println(rs.err)
@@ -94,6 +97,7 @@ func (rs *RemoteScript) Run() error {
 	return rs.runCmds()
 }
 
+//Output wil return output as []byte
 func (rs *RemoteScript) Output() ([]byte, error) {
 	if rs.stdout != nil {
 		return nil, errors.New("stdout already set")
@@ -104,6 +108,7 @@ func (rs *RemoteScript) Output() ([]byte, error) {
 	return out.Bytes(), err
 }
 
+//Cmd set command
 func (rs *RemoteScript) Cmd(cmd string) *RemoteScript {
 	_, err := rs.script.WriteString(cmd + "\n")
 	if err != nil {
@@ -112,6 +117,7 @@ func (rs *RemoteScript) Cmd(cmd string) *RemoteScript {
 	return rs
 }
 
+//SetStdio will set stdio and stderr
 func (rs *RemoteScript) SetStdio(stdout, stderr io.Writer) *RemoteScript {
 	rs.stdout = stdout
 	rs.stderr = stderr
@@ -152,6 +158,7 @@ func (rs *RemoteScript) runCmds() error {
 	return nil
 }
 
+//RemoteShell struct to execute many commands in 1 pipe
 type RemoteShell struct {
 	client         *ssh.Client
 	requestPty     bool
@@ -162,6 +169,7 @@ type RemoteShell struct {
 	stderr io.Writer
 }
 
+//TerminalConfig struct for shell
 type TerminalConfig struct {
 	Term   string
 	Height int
@@ -177,6 +185,7 @@ func (c *Client) Shell() *RemoteShell {
 	}
 }
 
+//SetStdio set stdio, stderr and stdin to remote shell
 func (rs *RemoteShell) SetStdio(stdin io.Reader, stdout, stderr io.Writer) *RemoteShell {
 	rs.stdin = stdin
 	rs.stdout = stdout

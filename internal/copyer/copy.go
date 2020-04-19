@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 )
 
+// Copy will copy file, dir, links, etc
 func Copy(src, dest string) error {
 	info, err := os.Lstat(src)
 	if err != nil {

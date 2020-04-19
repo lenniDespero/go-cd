@@ -10,12 +10,14 @@ import (
 	"github.com/lenniDespero/go-cd/internal/deployer/local"
 )
 
+// DeployRunner stores git, count releases to keep and deployer
 type DeployRunner struct {
 	deployer DeployInterface
 	git      string
 	rCount   int
 }
 
+//Run deploy stages
 func (d DeployRunner) Run() error {
 	err := d.deployer.Prepare()
 	if err != nil {
@@ -42,6 +44,7 @@ func (d DeployRunner) Run() error {
 	return nil
 }
 
+//GetDeployer return DeployRunner
 func GetDeployer(config config.Config, target string) (DeployRunner, error) {
 	d := DeployRunner{}
 	d.rCount = config.Count

@@ -21,12 +21,14 @@ import (
 	"github.com/lenniDespero/go-cd/internal/pkg/target"
 )
 
+//DeployHost struct for host deploy runner
 type DeployHost struct {
 	conf     target.Target
 	client   *ssh_client.Client
 	timeName string
 }
 
+//InitDeployer prepare DeployHost
 func InitDeployer(config target.Target) (*DeployHost, error) {
 	host := config.Host
 	switch host.Auth {
@@ -47,6 +49,7 @@ func InitDeployer(config target.Target) (*DeployHost, error) {
 	}
 }
 
+//Prepare work for deploy
 func (h DeployHost) Prepare() error {
 	logger.Debug("Prepare to deploy")
 	script := h.client.Cmd("ls " + h.conf.Path + ".lock")
@@ -64,6 +67,7 @@ func (h DeployHost) Prepare() error {
 	return errors.New(`".lock" file already exists`)
 }
 
+//UpdateSource will download source code
 func (h *DeployHost) UpdateSource(git string) error {
 	logger.Debug("Download source from git")
 	now := strconv.FormatInt(time.Now().Unix(), 10)
@@ -82,6 +86,7 @@ func (h *DeployHost) UpdateSource(git string) error {
 	return nil
 }
 
+//RunPipe execute pipe
 func (h *DeployHost) RunPipe() error {
 	logger.Debug("Run pipes work")
 	cmds := []string{}
@@ -112,6 +117,7 @@ func (h *DeployHost) RunPipe() error {
 	return nil
 }
 
+//MakeLinks make link to current version
 func (h *DeployHost) MakeLinks() error {
 	logger.Debug("Make Links")
 	script := h.client.Cmd(fmt.Sprintf("ln -s -f %s %s", filepath.Join(h.conf.Path, h.timeName), filepath.Join(h.conf.Path, "current")))
@@ -123,6 +129,7 @@ func (h *DeployHost) MakeLinks() error {
 	return nil
 }
 
+//CleanUp after work
 func (h *DeployHost) CleanUp(count int) error {
 	logger.Debug("CleanUp work")
 	script := h.client.Cmd(fmt.Sprintf("ls -d %s*", h.conf.Path))
