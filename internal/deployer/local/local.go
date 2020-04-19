@@ -25,6 +25,7 @@ type DeployLocal struct {
 	conf     target.Target
 	tmpdir   string
 	timeName string
+	absPth   string
 }
 
 //InitDeployer prepare local deploy runner
@@ -36,7 +37,12 @@ func InitDeployer(config target.Target) (*DeployLocal, error) {
 //And create lock file
 func (l *DeployLocal) Prepare() error {
 	logger.Debug("Prepare to deploy")
-	path, err := filepath.Abs(filepath.Join(l.conf.Path, ".lock"))
+	path, err := filepath.Abs(l.conf.Path)
+	if err != nil {
+		return err
+	}
+	l.absPth = path
+	path, err = filepath.Abs(filepath.Join(l.absPth, ".lock"))
 	if err != nil {
 		return err
 	}
@@ -80,13 +86,9 @@ func (l *DeployLocal) UpdateSource(gitPath string) error {
 	}
 	now := strconv.FormatInt(time.Now().Unix(), 10)
 	l.timeName = now
-	path, err := filepath.Abs(l.conf.Path)
+	err = copyer.Copy(l.tmpdir, filepath.Join(l.absPth, l.timeName))
 	if err != nil {
-		return err
-	}
-	err = copyer.Copy(l.tmpdir, filepath.Join(path, l.timeName))
-	if err != nil {
-		_ = os.RemoveAll(filepath.Join(path, l.timeName))
+		_ = os.RemoveAll(filepath.Join(l.absPth, l.timeName))
 		return err
 	}
 
@@ -96,15 +98,11 @@ func (l *DeployLocal) UpdateSource(gitPath string) error {
 //MakeLinks will make links to current release
 func (l *DeployLocal) MakeLinks() error {
 	logger.Debug("Make Links")
-	path, err := filepath.Abs(l.conf.Path)
+	err := os.Symlink(filepath.Join(l.absPth, l.timeName), filepath.Join(l.absPth, l.timeName+"link"))
 	if err != nil {
 		return err
 	}
-	err = os.Symlink(filepath.Join(path, l.timeName), filepath.Join(path, l.timeName+"link"))
-	if err != nil {
-		return err
-	}
-	err = os.Rename(filepath.Join(path, l.timeName+"link"), filepath.Join(path, "current"))
+	err = os.Rename(filepath.Join(l.absPth, l.timeName+"link"), filepath.Join(l.absPth, "current"))
 	if err != nil {
 		return err
 	}
@@ -115,11 +113,7 @@ func (l *DeployLocal) MakeLinks() error {
 //RunPipe execute pipe stages
 func (l *DeployLocal) RunPipe() error {
 	logger.Debug("Run pipes work")
-	path, err := filepath.Abs(l.conf.Path)
-	if err != nil {
-		return err
-	}
-	err = os.Chdir(filepath.Join(path, l.timeName))
+	err := os.Chdir(filepath.Join(l.absPth, l.timeName))
 	if err != nil {
 		return err
 	}
@@ -150,11 +144,7 @@ func (l *DeployLocal) RunPipe() error {
 //CleanUp work after work
 func (l *DeployLocal) CleanUp(cnt int) error {
 	logger.Debug("CleanUp work")
-	path, err := filepath.Abs(l.conf.Path)
-	if err != nil {
-		return err
-	}
-	files, err := ioutil.ReadDir(path)
+	files, err := ioutil.ReadDir(l.absPth)
 	if err != nil {
 		return err
 	}
@@ -167,13 +157,13 @@ func (l *DeployLocal) CleanUp(cnt int) error {
 	if len(folders) > cnt {
 		logger.Debug("Clean folders")
 		for _, folder := range folders[0:(len(folders) - cnt)] {
-			_ = os.RemoveAll(filepath.Join(path, folder))
+			_ = os.RemoveAll(filepath.Join(l.absPth, folder))
 		}
 	}
 	if err != nil {
 		return err
 	}
-	err = os.RemoveAll(filepath.Join(path, ".lock"))
+	err = os.RemoveAll(filepath.Join(l.absPth, ".lock"))
 	if err != nil {
 		return err
 	}

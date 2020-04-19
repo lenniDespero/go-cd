@@ -1,10 +1,10 @@
 projectName: project
-git: "https://github.com/OtusGolang/final_project.git"
-count: 2
+git: "https://github.com/OtusGolang/final_project"
+count: 4
 targets:
   devel:
     type: local
-    path: "testdata/releases"
+    path: "../../test_rel/"
     pipe:
       - name: make links
         type: links
@@ -14,8 +14,11 @@ targets:
           - from: "pathFrom2"
             to: "PathTo2"
       - name: run cmd
-        type: command
+        type: xz
         args:
+          - command: "composer"
+            args:
+              - install
           - command: "ls"
             args:
               - "-la"
@@ -24,8 +27,8 @@ targets:
     host:
       host: prod.host.ru
       auth: password
-      user: user
-      password: pass
+      user: root
+      password: password
     path: "/var/www/releases/"
     pipe:
       - name: make some work

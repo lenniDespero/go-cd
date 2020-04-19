@@ -77,3 +77,12 @@ func TestTarget_CheckConfigNoPipes(t *testing.T) {
 	target.Pipe = []pipe.Pipe{}
 	check(t, target, NoPipesError)
 }
+
+func TestTarget_CheckConfigBadPipes(t *testing.T) {
+	target := prepareTarget()
+	target.Pipe[1].Type = "xz"
+	err := target.CheckConfig()
+	if err == nil {
+		t.Errorf("Expected err get nill")
+	}
+}
