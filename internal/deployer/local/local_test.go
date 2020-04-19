@@ -152,7 +152,7 @@ func TestDeployLocal_CleanUp(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	err := os.Mkdir("../../../testdata/releases", 755)
+	err := os.Mkdir("../../../testdata/releases", 0755)
 	if err != nil {
 		os.Exit(1)
 	}
