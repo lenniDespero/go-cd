@@ -8,5 +8,8 @@ before_script:
 
 script:
   - golangci-lint run       # run a bunch of code checkers/linters in parallel
-  - go test -v -race -count 100 ./...  # Run all the tests with the race detector enabled
-  - GCO_ENABLED=0 go build -o ./bin/deployer ./cmd/main.go
+  - go test -race -count 100 -coverprofile=coverage.txt -covermode=atomic ./...  # Run all the tests with the race detector enabled
+  - GCO_ENABLED=0 go build -o ./bin/deployer ./cmd/main.go #build app
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
