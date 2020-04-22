@@ -91,7 +91,11 @@ func (l *DeployLocal) UpdateSource(gitPath string) error {
 		_ = os.RemoveAll(filepath.Join(l.absPth, l.timeName))
 		return err
 	}
-
+	err = os.Chmod(filepath.Join(l.absPth, l.timeName), 0755)
+	if err != nil {
+		_ = os.RemoveAll(filepath.Join(l.absPth, l.timeName))
+		return err
+	}
 	return nil
 }
 

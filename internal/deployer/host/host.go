@@ -112,6 +112,11 @@ func (h *DeployHost) RunPipe() error {
 	}
 	err := h.client.Shell().Start(cmds)
 	if err != nil {
+		defer func() {
+			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", filepath.Join(h.conf.Path, h.timeName)))
+			script.SetStdio(os.Stdout, os.Stderr)
+			_ = script.Run()
+		}()
 		return err
 	}
 	return nil
@@ -120,10 +125,26 @@ func (h *DeployHost) RunPipe() error {
 //MakeLinks make link to current version
 func (h *DeployHost) MakeLinks() error {
 	logger.Debug("Make Links")
-	script := h.client.Cmd(fmt.Sprintf("ln -s -f %s %s", filepath.Join(h.conf.Path, h.timeName), filepath.Join(h.conf.Path, "current")))
+	script := h.client.Cmd(fmt.Sprintf("chmod %d %s", 775, filepath.Join(h.conf.Path, h.timeName)))
 	script.SetStdio(os.Stdout, os.Stderr)
 	err := script.Run()
 	if err != nil {
+		defer func() {
+			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", filepath.Join(h.conf.Path, h.timeName)))
+			script.SetStdio(os.Stdout, os.Stderr)
+			_ = script.Run()
+		}()
+		return err
+	}
+	script = h.client.Cmd(fmt.Sprintf("ln -s -f %s %s", filepath.Join(h.conf.Path, h.timeName), filepath.Join(h.conf.Path, "current")))
+	script.SetStdio(os.Stdout, os.Stderr)
+	err = script.Run()
+	if err != nil {
+		defer func() {
+			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", filepath.Join(h.conf.Path, h.timeName)))
+			script.SetStdio(os.Stdout, os.Stderr)
+			_ = script.Run()
+		}()
 		return err
 	}
 	return nil
