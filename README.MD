@@ -1,4 +1,4 @@
-#Deployer  
+# Deployer  
 [![Go Report Card](https://goreportcard.com/badge/github.com/lenniDespero/go-cd)](https://goreportcard.com/report/github.com/lenniDespero/go-cd)
 [![Build Status](https://travis-ci.org/lenniDespero/go-cd.svg?branch=master)](https://travis-ci.org/lenniDespero/go-cd)
 [![codecov](https://codecov.io/gh/lenniDespero/go-cd/branch/master/graph/badge.svg)](https://codecov.io/gh/lenniDespero/go-cd)  
@@ -6,7 +6,7 @@
 Simple golang deploy script for web-apps(like php).
 It will get source code from git, run work pipes from config and make symlink to current deploy folder.
 
-##Instalation
+## Instalation
 You can:
 - Build from source `GOOS={target os} go build -o ./bin/deployer ./cmd/main.go` 
 - Use make for build
@@ -14,20 +14,20 @@ You can:
 
 Then you can move script to `/usr/local/bin/` for easy usage.  
 
-##Usage
-By default Deployer will take deploy.yml from folder where it run. If you want to use another config - use `--config path/to/config.yml`
-####Default usage  
+## Usage
+By default Deployer will take deploy.yml from folder where it run. If you want to use another config - use `--config path/to/config.yml`  
+#### Default usage  
 ```sh
 $deployer -target prod
 ```
-Deployer will test config file, and then will deploy app for target 'prod' from config
-####Test config
+Deployer will test config file, and then will deploy app for target 'prod' from config  
+#### Test config
 ```sh
 $deployer -test
 ```
-Deployer will only test config file and exit.
+Deployer will only test config file and exit.  
 
-###Config file example
+### Config file example
 ```yaml
 projectName: project
 git: "some.git.url.git"
