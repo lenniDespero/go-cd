@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	var configPath = flag.String("config", "config/app.yml", "path to configuration flag")
+	var configPath = flag.String("config", "deploy.yml", "path to configuration flag")
 	var deployTarget = flag.String("target", "", "target to deploy")
 	var configTest = flag.Bool("test", false, "only test config")
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)

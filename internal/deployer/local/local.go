@@ -42,6 +42,14 @@ func (l *DeployLocal) Prepare() error {
 		return err
 	}
 	l.absPth = path
+	info, err := os.Stat(path)
+	if err != nil || !info.IsDir() {
+		err = os.MkdirAll(path, 0775)
+		if err != nil {
+			return err
+		}
+	}
+
 	path, err = filepath.Abs(filepath.Join(l.absPth, ".lock"))
 	if err != nil {
 		return err
@@ -91,7 +99,7 @@ func (l *DeployLocal) UpdateSource(gitPath string) error {
 		_ = os.RemoveAll(filepath.Join(l.absPth, l.timeName))
 		return err
 	}
-	err = os.Chmod(filepath.Join(l.absPth, l.timeName), 0755)
+	err = os.Chmod(filepath.Join(l.absPth, l.timeName), 0775)
 	if err != nil {
 		_ = os.RemoveAll(filepath.Join(l.absPth, l.timeName))
 		return err
@@ -102,11 +110,15 @@ func (l *DeployLocal) UpdateSource(gitPath string) error {
 //MakeLinks will make links to current release
 func (l *DeployLocal) MakeLinks() error {
 	logger.Debug("Make Links")
-	err := os.Symlink(filepath.Join(l.absPth, l.timeName), filepath.Join(l.absPth, l.timeName+"link"))
+	err := os.Chdir(filepath.Join(l.absPth))
 	if err != nil {
 		return err
 	}
-	err = os.Rename(filepath.Join(l.absPth, l.timeName+"link"), filepath.Join(l.absPth, "current"))
+	err = os.Symlink(l.timeName, l.timeName+"link")
+	if err != nil {
+		return err
+	}
+	err = os.Rename(l.timeName+"link", "current")
 	if err != nil {
 		return err
 	}
