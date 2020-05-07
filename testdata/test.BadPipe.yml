@@ -1,0 +1,46 @@
+projectName: project
+git: "https://github.com/OtusGolang/final_project"
+count: 4
+targets:
+  devel:
+    type: local
+    path: "../../test_rel/"
+    pipe:
+      - name: make links
+        type: links
+        args:
+          - from: "pathFrom"
+            to: "PathTo"
+          - from: "pathFrom2"
+            to: "PathTo2"
+      - name: run cmd
+        type: xz
+        args:
+          - command: "composer"
+            args:
+              - install
+          - command: "ls"
+            args:
+              - "-la"
+  prod:
+    type: host
+    host:
+      host: prod.host.ru
+      auth: password
+      user: root
+      password: password
+    path: "/var/www/releases/"
+    pipe:
+      - name: make some work
+        type: command
+        args:
+          - command: "composer"
+            args:
+              - "install"
+      - name: make links
+        type: links
+        args:
+          - from: "pathFrom"
+            to: "PathTo"
+          - from: "pathFrom2"
+            to: "PathTo2"
