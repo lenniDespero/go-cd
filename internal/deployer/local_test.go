@@ -1,4 +1,5 @@
 //+build !race
+
 // Travis CI стал падать
 package deployer
 
