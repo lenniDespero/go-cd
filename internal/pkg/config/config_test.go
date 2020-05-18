@@ -50,25 +50,25 @@ func TestConfig_CheckConfig(t *testing.T) {
 func TestConfig_CheckConfigNoGit(t *testing.T) {
 	config := prepareConfig()
 	config.Git = ""
-	check(t, config, NoGitError)
+	check(t, config, ErrNoGit)
 }
 
 func TestConfig_CheckConfigNoName(t *testing.T) {
 	config := prepareConfig()
 	config.ProjectName = ""
-	check(t, config, NoNameError)
+	check(t, config, ErrNoName)
 }
 
 func TestConfig_CheckConfigNoCount(t *testing.T) {
 	config := prepareConfig()
 	config.Count = 0
-	check(t, config, NoCountError)
+	check(t, config, ErrNoCount)
 }
 
 func TestConfig_CheckConfigNoTargets(t *testing.T) {
 	config := prepareConfig()
 	config.Targets = map[string]target.Config{}
-	check(t, config, NoTargetsError)
+	check(t, config, ErrNoTargets)
 }
 
 func TestReadConfigErr(t *testing.T) {

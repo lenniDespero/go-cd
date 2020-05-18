@@ -52,10 +52,10 @@ func NewDeployer(config config.Config, targetString string) (Deployer, error) {
 
 	var err error
 	switch config.Targets[targetString].Type {
-	case target.TYPE_LOCAL:
+	case target.TypeLocal:
 		d.deployer, err = NewLocalDeployer(config.Targets[targetString])
 		return d, err
-	case target.TYPE_HOST:
+	case target.TypeHost:
 		d.deployer, err = NewHosDeployer(config.Targets[targetString])
 		return d, err
 	default:

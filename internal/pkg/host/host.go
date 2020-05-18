@@ -21,39 +21,44 @@ var Types = map[string]bool{
 	"password": true,
 }
 
+const (
+	TypeKey      string = "key"
+	TypePassword string = "password"
+)
+
 // Errors
 var (
-	NoHostError        = errors.New("no host in config")
-	NoAuthError        = errors.New("no auth type in config")
-	WrongAuthTypeError = errors.New("wrong auth type in config")
-	NoUserError        = errors.New("no user in config")
-	NoPasswordError    = errors.New("no password in config")
-	NoKeyError         = errors.New("no key in config")
+	ErrNoHost        = errors.New("no host in config")
+	ErrNoAuth        = errors.New("no auth type in config")
+	ErrWrongAuthType = errors.New("wrong auth type in config")
+	ErrNoUser        = errors.New("no user in config")
+	ErrNoPassword    = errors.New("no password in config")
+	ErrNoKey         = errors.New("no key in config")
 )
 
 // CheckConfig will check config for errors
 func (h Config) CheckConfig() error {
 	if h.Host == "" {
-		return NoHostError
+		return ErrNoHost
 	}
 	if h.Auth == "" {
-		return NoAuthError
+		return ErrNoAuth
 	}
 	if h.User == "" {
-		return NoUserError
+		return ErrNoUser
 	}
 	switch h.Auth {
-	case "password":
+	case TypePassword:
 		if h.Password == "" {
-			return NoPasswordError
+			return ErrNoPassword
 		}
-	case "key":
+	case TypeKey:
 		if h.Key == "" {
-			return NoKeyError
+			return ErrNoKey
 		}
 	default:
 		if !Types[h.Auth] {
-			return WrongAuthTypeError
+			return ErrWrongAuthType
 		}
 	}
 	return nil

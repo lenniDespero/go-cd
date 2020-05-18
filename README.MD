@@ -8,6 +8,7 @@ It will get source code from git, run work pipes from config and make symlink to
 
 ## Installation
 You can:
+- `go get github.com/lenniDespero/go-cd`
 - Build from source `GOOS={target os} GOARCH={target arch} go build -o ./bin/deployer ./cmd/main.go` 
 - Use make for build
 - Take prebuild versions from bin/  
@@ -15,7 +16,7 @@ You can:
 Then you can move script to `/usr/local/bin/` for easy usage.  
 
 ## Usage
-By default Deployer will take deploy.yml from folder where it run. If you want to use another config - use `--config path/to/config.yml`  
+By default, Deployer will take deploy.yml from folder where it run. If you want to use another config - use `--config path/to/config.yml`  
 #### Default usage  
 ```sh
 $deployer -target prod

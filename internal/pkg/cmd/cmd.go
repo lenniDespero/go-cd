@@ -15,13 +15,13 @@ type Config struct {
 
 //Errors
 var (
-	NoCommandError = errors.New("no command")
+	ErrNoCommand = errors.New("no command")
 )
 
 //CheckConfig will check config for errors
 func (command Config) CheckConfig() error {
 	if command.Command == "" {
-		return NoCommandError
+		return ErrNoCommand
 	}
 	return nil
 }

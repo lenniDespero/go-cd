@@ -7,30 +7,30 @@ import (
 	"path/filepath"
 )
 
-//Config link struct for config
+// Config link struct for config
 type Config struct {
 	From string `mapstructure:"from" json:"from"`
 	To   string `mapstructure:"to" json:"to"`
 }
 
-//Errors
+// Errors
 var (
-	NoLinkFromError = errors.New("no link from")
-	NoLinkToError   = errors.New("no link to")
+	ErrNoLinkFrom = errors.New("no link from")
+	ErrNoLinkTo   = errors.New("no link to")
 )
 
-//CheckConfig will check config for errors
+// CheckConfig will check config for errors
 func (link Config) CheckConfig() error {
 	if link.From == "" {
-		return NoLinkFromError
+		return ErrNoLinkFrom
 	}
 	if link.To == "" {
-		return NoLinkToError
+		return ErrNoLinkTo
 	}
 	return nil
 }
 
-//ExecuteOnLocal make link on local machine
+// ExecuteOnLocal make link on local machine
 func (link Config) ExecuteOnLocal() error {
 	from, err := filepath.Abs(link.From)
 	if err != nil {
@@ -40,6 +40,7 @@ func (link Config) ExecuteOnLocal() error {
 	if err != nil {
 		return err
 	}
+
 	err = os.Symlink(from, to)
 	if err != nil {
 		return err
@@ -47,7 +48,7 @@ func (link Config) ExecuteOnLocal() error {
 	return nil
 }
 
-//GetRemoteCommand prepare command to make link on remote machine
+// GetRemoteCommand prepare command to make link on remote machine
 func (link Config) GetRemoteCommand() string {
 	return fmt.Sprintf("ln -s %s %s", link.From, link.To)
 }

@@ -23,7 +23,7 @@ func TestCmd_CheckConfig(t *testing.T) {
 	cmd.Command = ""
 	err = cmd.CheckConfig()
 	require.NotNil(t, err)
-	require.Error(t, err, NoCommandError)
+	require.Error(t, err, ErrNoCommand)
 }
 
 func TestCmd_ExecuteOnLocal(t *testing.T) {

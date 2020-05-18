@@ -20,10 +20,10 @@ type Config struct {
 
 // Errors
 var (
-	NoNameError    = errors.New("no project name in config")
-	NoGitError     = errors.New("no git in config")
-	NoCountError   = errors.New("no count releases in config")
-	NoTargetsError = errors.New("no targets in config")
+	ErrNoName    = errors.New("no project name in config")
+	ErrNoGit     = errors.New("no git in config")
+	ErrNoCount   = errors.New("no count releases in config")
+	ErrNoTargets = errors.New("no targets in config")
 )
 
 // ReadConfig from file and check for errors
@@ -46,16 +46,16 @@ func ReadConfig(configPath string) (Config, error) {
 // CheckConfig will check config for errors
 func (c Config) CheckConfig() error {
 	if c.ProjectName == "" {
-		return NoNameError
+		return ErrNoName
 	}
 	if c.Git == "" {
-		return NoGitError
+		return ErrNoGit
 	}
 	if c.Count < 1 {
-		return NoCountError
+		return ErrNoCount
 	}
 	if len(c.Targets) == 0 {
-		return NoTargetsError
+		return ErrNoTargets
 	}
 	for name, target := range c.Targets {
 		err := target.CheckConfig()

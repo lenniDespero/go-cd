@@ -17,10 +17,10 @@ func prepareConfig(t *testing.T) *config.Config {
 	return &c
 }
 
-func getDeployer(t *testing.T) (*LocalDeployer, error) {
+func getDeployer(t *testing.T) *LocalDeployer {
 	conf := prepareConfig(t)
 	deployer := &LocalDeployer{conf: conf.Targets["devel"]}
-	return deployer, nil
+	return deployer
 }
 
 func (l *LocalDeployer) removeLock(t *testing.T) {
@@ -35,9 +35,8 @@ func TestInitDeployer(t *testing.T) {
 }
 
 func TestDeployLocal_PrepareFail(t *testing.T) {
-	deployer, err := getDeployer(t)
-	require.Nil(t, err)
-	err = deployer.Prepare()
+	deployer := getDeployer(t)
+	err := deployer.Prepare()
 	require.Nil(t, err)
 	err = deployer.Prepare()
 	require.NotNil(t, err)
@@ -45,19 +44,17 @@ func TestDeployLocal_PrepareFail(t *testing.T) {
 }
 
 func TestDeployLocal_PrepareFailPath(t *testing.T) {
-	deployer, err := getDeployer(t)
-	require.Nil(t, err)
+	deployer := getDeployer(t)
 	deployer.conf.Path = "/testdata/releases"
-	err = deployer.Prepare()
+	err := deployer.Prepare()
 	require.NotNil(t, err)
 	deployer.removeLock(t)
 }
 
 func TestDeployLocal_UpdateSourceBadGit(t *testing.T) {
 	conf := prepareConfig(t)
-	deployer, err := getDeployer(t)
-	require.Nil(t, err)
-	err = deployer.Prepare()
+	deployer := getDeployer(t)
+	err := deployer.Prepare()
 	require.Nil(t, err)
 	err = deployer.UpdateSource(conf.Git + "fsuegjsehfgjhseb")
 	require.NotNil(t, err)
@@ -66,13 +63,12 @@ func TestDeployLocal_UpdateSourceBadGit(t *testing.T) {
 
 func TestDeployLocal_RunPipeWrongPath(t *testing.T) {
 	conf := prepareConfig(t)
-	deployer, err := getDeployer(t)
-	require.Nil(t, err)
-	err = deployer.Prepare()
+	deployer := getDeployer(t)
+	err := deployer.Prepare()
 	require.Nil(t, err)
 	err = deployer.UpdateSource(conf.Git)
 	require.Nil(t, err)
-	deployer.timeNamePath = deployer.timeNamePath + "syeugfsjgefgsef"
+	deployer.timeNamePath += "syeugfsjgefgsef"
 	err = deployer.RunPipe()
 	require.NotNil(t, err)
 	deployer.removeLock(t)
@@ -80,9 +76,8 @@ func TestDeployLocal_RunPipeWrongPath(t *testing.T) {
 
 func TestDeployLocal_CleanUp(t *testing.T) {
 	conf := prepareConfig(t)
-	deployer, err := getDeployer(t)
-	require.Nil(t, err)
-	err = deployer.Prepare()
+	deployer := getDeployer(t)
+	err := deployer.Prepare()
 	require.Nil(t, err)
 	err = deployer.UpdateSource(conf.Git)
 	require.Nil(t, err)

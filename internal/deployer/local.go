@@ -41,6 +41,7 @@ func (l *LocalDeployer) Prepare() error {
 		return err
 	}
 	l.absPth = path
+
 	info, err := os.Stat(path)
 	if err != nil || !info.IsDir() {
 		err = os.MkdirAll(path, 0775)
@@ -64,6 +65,7 @@ func (l *LocalDeployer) Prepare() error {
 			return err
 		}
 	}
+
 	if stat != nil {
 		return errors.New("lock file already exists")
 	}
@@ -81,6 +83,7 @@ func (l *LocalDeployer) UpdateSource(gitPath string) error {
 	}
 	l.tmpdir = dir
 	defer os.RemoveAll(l.tmpdir)
+
 	cmd := exec.Command("git", "clone", gitPath, l.tmpdir)
 	cmd.Env = os.Environ()
 	cmd.Stdout = os.Stdout
@@ -92,11 +95,13 @@ func (l *LocalDeployer) UpdateSource(gitPath string) error {
 	now := strconv.FormatInt(time.Now().Unix(), 10)
 	l.timeName = now
 	l.timeNamePath = filepath.Join(l.absPth, l.timeName)
+
 	err = copyer.Copy(l.tmpdir, l.timeNamePath)
 	if err != nil {
 		_ = os.RemoveAll(l.timeNamePath)
 		return err
 	}
+
 	err = os.Chmod(l.timeNamePath, 0775)
 	if err != nil {
 		_ = os.RemoveAll(l.timeNamePath)
@@ -112,10 +117,12 @@ func (l *LocalDeployer) MakeLinks() error {
 	if err != nil {
 		return err
 	}
+
 	err = os.Symlink(l.timeName, l.timeName+"link")
 	if err != nil {
 		return err
 	}
+
 	err = os.Rename(l.timeName+"link", "current")
 	if err != nil {
 		return err
@@ -131,6 +138,7 @@ func (l *LocalDeployer) RunPipe() error {
 	if err != nil {
 		return err
 	}
+
 	for _, p := range l.conf.Pipe {
 		inter := pipe.Names[p.Type]
 		for _, args := range p.Args {
@@ -163,11 +171,13 @@ func (l *LocalDeployer) CleanUp(cnt int) error {
 		return err
 	}
 	var folders []string
+
 	for _, rec := range files {
 		if rec.IsDir() {
 			folders = append(folders, rec.Name())
 		}
 	}
+
 	if len(folders) > cnt {
 		logger.Debug("clean folders")
 		for _, folder := range folders[0:(len(folders) - cnt)] {
@@ -177,6 +187,7 @@ func (l *LocalDeployer) CleanUp(cnt int) error {
 	if err != nil {
 		return err
 	}
+
 	err = os.RemoveAll(filepath.Join(l.absPth, ".lock"))
 	if err != nil {
 		return err

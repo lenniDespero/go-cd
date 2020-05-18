@@ -26,26 +26,26 @@ func TestPipe_CheckConfigNoName(t *testing.T) {
 	pipe := preparePipe()
 	pipe.Name = ""
 	err := pipe.CheckConfig()
-	require.Error(t, err, NoPipeName)
+	require.Error(t, err, ErrNoPipeName)
 }
 
 func TestPipe_CheckConfigNoType(t *testing.T) {
 	pipe := preparePipe()
 	pipe.Type = ""
 	err := pipe.CheckConfig()
-	require.Error(t, err, NoPipeTypeError)
+	require.Error(t, err, ErrNoPipeType)
 }
 
 func TestPipe_CheckConfigWrongType(t *testing.T) {
 	pipe := preparePipe()
 	pipe.Type = "strange"
 	err := pipe.CheckConfig()
-	require.Error(t, err, NotInPipesError)
+	require.Error(t, err, ErrNotInPipes)
 }
 
 func TestPipe_CheckConfigNoArgs(t *testing.T) {
 	pipe := preparePipe()
 	pipe.Args = nil
 	err := pipe.CheckConfig()
-	require.Error(t, err, NoPipeArgs)
+	require.Error(t, err, ErrNoPipeArgs)
 }

@@ -6,13 +6,13 @@ import (
 	"reflect"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 
 	"github.com/lenniDespero/go-cd/internal/pkg/host"
 	"github.com/lenniDespero/go-cd/internal/pkg/pipe"
-	"github.com/pkg/errors"
 )
 
-//Config target struct for config
+// Config target struct for config
 type Config struct {
 	Type string        `mapstructure:"type"`
 	Host host.Config   `mapstructure:"host"`
@@ -20,37 +20,37 @@ type Config struct {
 	Pipe []pipe.Config `mapstructure:"pipe"`
 }
 
-//Types of targets
+// Types of targets
 var Types = map[string]bool{
 	"local": true,
 	"host":  true,
 }
 
 const (
-	TYPE_LOCAL string = "local"
-	TYPE_HOST  string = "host"
+	TypeLocal string = "local"
+	TypeHost  string = "host"
 )
 
-//Errors
+// Errors
 var (
-	NoTypeError     = errors.New("no type in target")
-	NotInTypesError = errors.New("not in legal types (local or host)")
-	NoHostError     = errors.New("no host in target")
-	NoPathError     = errors.New("no path to deploy in target")
-	NoPipesError    = errors.New("no pipes in target")
+	ErrNoType     = errors.New("no type in target")
+	ErrNotInTypes = errors.New("not in legal types (local or host)")
+	ErrNoHost     = errors.New("no host in target")
+	ErrNoPath     = errors.New("no path to deploy in target")
+	ErrNoPipes    = errors.New("no pipes in target")
 )
 
-//CheckConfig will check config for errors
+// CheckConfig will check config for errors
 func (target Config) CheckConfig() error {
 	if target.Type == "" {
-		return NoTypeError
+		return ErrNoType
 	}
 	if !Types[target.Type] {
-		return errors.Wrap(NotInTypesError, fmt.Sprintf("type %s ", target.Type))
+		return errors.Wrap(ErrNotInTypes, fmt.Sprintf("type %s ", target.Type))
 	}
 	if target.Type == "host" {
 		if reflect.DeepEqual(target.Host, host.Config{}) {
-			return NoHostError
+			return ErrNoHost
 		}
 		err := target.Host.CheckConfig()
 		if err != nil {
@@ -58,17 +58,20 @@ func (target Config) CheckConfig() error {
 		}
 	}
 	if target.Path == "" {
-		return NoPathError
+		return ErrNoPath
 	}
 	if len(target.Pipe) == 0 {
-		return NoPipesError
+		return ErrNoPipes
 	}
 	for _, p := range target.Pipe {
 		err := p.CheckConfig()
 		if err != nil {
 			return err
 		}
-		inter := pipe.Names[p.Type]
+		inter, ok := pipe.Names[p.Type]
+		if !ok {
+			return ErrNotInTypes
+		}
 		for _, args := range p.Args {
 			err := mapstructure.Decode(args, inter)
 			if err != nil {
@@ -78,7 +81,10 @@ func (target Config) CheckConfig() error {
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("error on marshal in %s -> %s ", target.Type, p.Name))
 			}
-			pipeint := pipe.NamesInt[p.Type]
+			pipeint, ok := pipe.NamesInt[p.Type]
+			if !ok {
+				return errors.New(fmt.Sprintf("unexpected error on %s -> %s", target.Type, p.Name))
+			}
 			if err := json.Unmarshal(jsonInter, &pipeint); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("error on unmarshal in %s -> %s ", target.Type, p.Name))
 			}

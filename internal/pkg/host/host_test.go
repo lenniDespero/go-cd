@@ -55,36 +55,36 @@ func TestHost_CheckConfig(t *testing.T) {
 func TestHost_CheckConfigNoHost(t *testing.T) {
 	host := prepareHost()
 	host.Host = ""
-	check(t, host, NoHostError)
+	check(t, host, ErrNoHost)
 }
 
 func TestHost_CheckConfigNoAuth(t *testing.T) {
 	host := prepareHost()
 	host.Auth = ""
-	check(t, host, NoAuthError)
+	check(t, host, ErrNoAuth)
 }
 
 func TestHost_CheckConfigNoPass(t *testing.T) {
 	host := prepareHost()
 	host.Password = ""
-	check(t, host, NoPasswordError)
+	check(t, host, ErrNoPassword)
 }
 
 func TestHost_CheckConfigNoKey(t *testing.T) {
 	host := prepareHost()
 	host.Key = ""
 	host.Auth = "key"
-	check(t, host, NoKeyError)
+	check(t, host, ErrNoKey)
 }
 
 func TestHost_CheckConfigWrongType(t *testing.T) {
 	host := prepareHost()
 	host.Auth = "strange"
-	check(t, host, WrongAuthTypeError)
+	check(t, host, ErrWrongAuthType)
 }
 
 func TestHost_CheckConfigNoUser(t *testing.T) {
 	host := prepareHost()
 	host.User = ""
-	check(t, host, NoUserError)
+	check(t, host, ErrNoUser)
 }

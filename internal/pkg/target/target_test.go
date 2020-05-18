@@ -37,13 +37,13 @@ func TestTarget_CheckConfig(t *testing.T) {
 func TestTarget_CheckConfigNoType(t *testing.T) {
 	target := prepareTarget()
 	target.Type = ""
-	check(t, target, NoTypeError)
+	check(t, target, ErrNoType)
 }
 
 func TestTarget_CheckConfigNotInTypes(t *testing.T) {
 	target := prepareTarget()
 	target.Type = "strange"
-	newErr := errors.Wrap(NotInTypesError, fmt.Sprintf("type %s ", target.Type))
+	newErr := errors.Wrap(ErrNotInTypes, fmt.Sprintf("type %s ", target.Type))
 	err := target.CheckConfig()
 	require.Error(t, err, newErr)
 }
@@ -51,19 +51,19 @@ func TestTarget_CheckConfigNotInTypes(t *testing.T) {
 func TestTarget_CheckConfigNoHost(t *testing.T) {
 	target := prepareTarget()
 	target.Type = "host"
-	check(t, target, NoHostError)
+	check(t, target, ErrNoHost)
 }
 
 func TestTarget_CheckConfigNoPath(t *testing.T) {
 	target := prepareTarget()
 	target.Path = ""
-	check(t, target, NoPathError)
+	check(t, target, ErrNoPath)
 }
 
 func TestTarget_CheckConfigNoPipes(t *testing.T) {
 	target := prepareTarget()
 	target.Pipe = []pipe.Config{}
-	check(t, target, NoPipesError)
+	check(t, target, ErrNoPipes)
 }
 
 func TestTarget_CheckConfigBadPipes(t *testing.T) {

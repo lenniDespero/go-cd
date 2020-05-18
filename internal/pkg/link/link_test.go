@@ -35,14 +35,14 @@ func TestLink_CheckConfigNoPathTo(t *testing.T) {
 	link := prepareLink()
 	link.To = ""
 	err := link.CheckConfig()
-	require.Error(t, err, NoLinkToError)
+	require.Error(t, err, ErrNoLinkTo)
 }
 
 func TestLink_CheckConfigNoPathFrom(t *testing.T) {
 	link := prepareLink()
 	link.From = ""
 	err := link.CheckConfig()
-	require.Error(t, err, NoLinkFromError)
+	require.Error(t, err, ErrNoLinkFrom)
 }
 
 func TestLink_ExecuteOnLocal(t *testing.T) {
