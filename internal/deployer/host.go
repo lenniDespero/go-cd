@@ -1,61 +1,58 @@
-package host
+package deployer
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/lenniDespero/go-cd/internal/logger"
-
-	"github.com/lenniDespero/go-cd/internal/pkg/pipe"
 	"github.com/mitchellh/mapstructure"
 
-	ssh_client "github.com/lenniDespero/go-cd/internal/sshclient"
-
+	"github.com/lenniDespero/go-cd/internal/logger"
+	"github.com/lenniDespero/go-cd/internal/pkg/pipe"
 	"github.com/lenniDespero/go-cd/internal/pkg/target"
+	"github.com/lenniDespero/go-cd/internal/ssh"
 )
 
-//DeployHost struct for host deploy runner
-type DeployHost struct {
-	conf     target.Target
-	client   *ssh_client.Client
-	timeName string
+// HostDeployer struct for host deploy runner
+type HostDeployer struct {
+	conf         target.Config
+	client       *ssh.Client
+	timeNamePath string
 }
 
-//InitDeployer prepare DeployHost
-func InitDeployer(config target.Target) (*DeployHost, error) {
+// NewHosDeployer prepare HostDeployer
+func NewHosDeployer(config target.Config) (*HostDeployer, error) {
 	host := config.Host
 	switch host.Auth {
 	case "password":
-		client, err := ssh_client.DialWithPasswd(host.GetConnectionString(), host.User, host.Password)
+		client, err := ssh.DialWithPasswd(host.GetConnectionString(), host.User, host.Password)
 		if err != nil {
-			return &DeployHost{}, err
+			return nil, err
 		}
-		return &DeployHost{conf: config, client: client}, nil
+		return &HostDeployer{conf: config, client: client}, nil
 	case "key":
-		client, err := ssh_client.DialWithKey(host.GetConnectionString(), host.User, host.Key)
+		client, err := ssh.DialWithKey(host.GetConnectionString(), host.User, host.Key)
 		if err != nil {
-			return &DeployHost{}, err
+			return nil, err
 		}
-		return &DeployHost{conf: config, client: client}, nil
+		return &HostDeployer{conf: config, client: client}, nil
 	default:
-		return &DeployHost{}, fmt.Errorf("unknown type host auth: %s", host.Auth)
+		return nil, fmt.Errorf("unknown type host auth: %s", host.Auth)
 	}
 }
 
-//Prepare work for deploy
-func (h DeployHost) Prepare() error {
-	logger.Debug("Prepare to deploy")
+// Prepare work for deploy
+func (h HostDeployer) Prepare() error {
+	logger.Debug("prepare to deploy")
 	script := h.client.Cmd("ls " + h.conf.Path + ".lock")
 	err := script.Run()
 	if err != nil {
-		logger.Info(`No ".lock" file, make ".lock"`)
+		logger.Info(`no ".lock" file, make ".lock"`)
 		script := h.client.Cmd("touch " + h.conf.Path + ".lock")
 		script.SetStdio(os.Stdout, os.Stderr)
 		err := script.Run()
@@ -67,17 +64,18 @@ func (h DeployHost) Prepare() error {
 	return errors.New(`".lock" file already exists`)
 }
 
-//UpdateSource will download source code
-func (h *DeployHost) UpdateSource(git string) error {
-	logger.Debug("Download source from git")
+// UpdateSource will download source code
+func (h *HostDeployer) UpdateSource(git string) error {
+	logger.Debug("download source from git")
 	now := strconv.FormatInt(time.Now().Unix(), 10)
-	h.timeName = now
-	script := h.client.Cmd(fmt.Sprintf("git clone %s %s", git, filepath.Join(h.conf.Path, h.timeName)))
+	timeName := now
+	h.timeNamePath = filepath.Join(h.conf.Path, timeName)
+	script := h.client.Cmd(fmt.Sprintf("git clone %s %s", git, h.timeNamePath))
 	script.SetStdio(os.Stdout, os.Stderr)
 	err := script.Run()
 	if err != nil {
 		defer func() {
-			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", filepath.Join(h.conf.Path, h.timeName)))
+			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", h.timeNamePath))
 			script.SetStdio(os.Stdout, os.Stderr)
 			_ = script.Run()
 		}()
@@ -86,13 +84,17 @@ func (h *DeployHost) UpdateSource(git string) error {
 	return nil
 }
 
-//RunPipe execute pipe
-func (h *DeployHost) RunPipe() error {
-	logger.Debug("Run pipes work")
-	cmds := []string{}
-	cmds = append(cmds, fmt.Sprintf("cd %s", filepath.Join(h.conf.Path, h.timeName)))
+// RunPipe execute pipe
+func (h *HostDeployer) RunPipe() error {
+	logger.Debug("run pipes work")
+	cmds := []string{
+		fmt.Sprintf("cd %s", h.timeNamePath),
+	}
 	for _, p := range h.conf.Pipe {
-		inter := pipe.Names[p.Type]
+		inter, ok := pipe.Names[p.Type]
+		if !ok {
+			return errors.New(fmt.Sprintf("unresolved %s type", p.Type))
+		}
 		for _, args := range p.Args {
 			err := mapstructure.Decode(args, inter)
 			if err != nil {
@@ -102,7 +104,10 @@ func (h *DeployHost) RunPipe() error {
 			if err != nil {
 				return err
 			}
-			pipeint := pipe.NamesInt[p.Type]
+			pipeint, ok := pipe.NamesInt[p.Type]
+			if !ok {
+				return errors.New(fmt.Sprintf("unresolved %s type", p.Type))
+			}
 			if err := json.Unmarshal(jsonInter, &pipeint); err != nil {
 				return err
 			}
@@ -113,7 +118,7 @@ func (h *DeployHost) RunPipe() error {
 	err := h.client.Shell().Start(cmds)
 	if err != nil {
 		defer func() {
-			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", filepath.Join(h.conf.Path, h.timeName)))
+			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", h.timeNamePath))
 			script.SetStdio(os.Stdout, os.Stderr)
 			_ = script.Run()
 		}()
@@ -122,26 +127,26 @@ func (h *DeployHost) RunPipe() error {
 	return nil
 }
 
-//MakeLinks make link to current version
-func (h *DeployHost) MakeLinks() error {
-	logger.Debug("Make Links")
-	script := h.client.Cmd(fmt.Sprintf("chmod %d %s", 775, filepath.Join(h.conf.Path, h.timeName)))
+// MakeLinks make link to current version
+func (h *HostDeployer) MakeLinks() error {
+	logger.Debug("make Links")
+	script := h.client.Cmd(fmt.Sprintf("chmod %d %s", 775, h.timeNamePath))
 	script.SetStdio(os.Stdout, os.Stderr)
 	err := script.Run()
 	if err != nil {
 		defer func() {
-			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", filepath.Join(h.conf.Path, h.timeName)))
+			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", h.timeNamePath))
 			script.SetStdio(os.Stdout, os.Stderr)
 			_ = script.Run()
 		}()
 		return err
 	}
-	script = h.client.Cmd(fmt.Sprintf("ln -s -f %s %s", filepath.Join(h.conf.Path, h.timeName), filepath.Join(h.conf.Path, "current")))
+	script = h.client.Cmd(fmt.Sprintf("ln -s -f %s %s", h.timeNamePath, filepath.Join(h.conf.Path, "current")))
 	script.SetStdio(os.Stdout, os.Stderr)
 	err = script.Run()
 	if err != nil {
 		defer func() {
-			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", filepath.Join(h.conf.Path, h.timeName)))
+			script := h.client.Cmd(fmt.Sprintf("rm -rf %s ", h.timeNamePath))
 			script.SetStdio(os.Stdout, os.Stderr)
 			_ = script.Run()
 		}()
@@ -150,20 +155,19 @@ func (h *DeployHost) MakeLinks() error {
 	return nil
 }
 
-//CleanUp after work
-func (h *DeployHost) CleanUp(count int) error {
-	logger.Debug("CleanUp work")
+// CleanUp after work
+func (h *HostDeployer) CleanUp(count int) error {
+	logger.Debug("cleanUp work")
 	script := h.client.Cmd(fmt.Sprintf("ls -d %s*", h.conf.Path))
 	out, err := script.Output()
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	folders := strings.Split(string(out), "\n")
 	//link to current +1
 	cnt := count + 1
 	if len(folders) > cnt {
-		logger.Debug("Clean folders")
+		logger.Debug("clean folders")
 		for _, folder := range folders[0:(len(folders) - cnt)] {
 			if folder != "" {
 				script := h.client.Cmd(fmt.Sprintf("rm -rf %s", folder))

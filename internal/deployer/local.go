@@ -1,4 +1,4 @@
-package local
+package deployer
 
 import (
 	"encoding/json"
@@ -10,33 +10,32 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lenniDespero/go-cd/internal/logger"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/lenniDespero/go-cd/internal/copyer"
-
+	"github.com/lenniDespero/go-cd/internal/logger"
 	"github.com/lenniDespero/go-cd/internal/pkg/pipe"
 	"github.com/lenniDespero/go-cd/internal/pkg/target"
-
-	"github.com/mitchellh/mapstructure"
 )
 
-//DeployLocal local deploy runner struct
-type DeployLocal struct {
-	conf     target.Target
-	tmpdir   string
-	timeName string
-	absPth   string
+// LocalDeployer local deploy runner struct
+type LocalDeployer struct {
+	conf         target.Config
+	tmpdir       string
+	timeName     string
+	timeNamePath string
+	absPth       string
 }
 
-//InitDeployer prepare local deploy runner
-func InitDeployer(config target.Target) (*DeployLocal, error) {
-	return &DeployLocal{conf: config}, nil
+// NewLocalDeployer prepare local deploy runner
+func NewLocalDeployer(config target.Config) (DeployInterface, error) {
+	return &LocalDeployer{conf: config}, nil
 }
 
-//Prepare Will check lock file
-//And create lock file
-func (l *DeployLocal) Prepare() error {
-	logger.Debug("Prepare to deploy")
+// Prepare Will check lock file
+// And create lock file
+func (l *LocalDeployer) Prepare() error {
+	logger.Debug("prepare to deploy")
 	path, err := filepath.Abs(l.conf.Path)
 	if err != nil {
 		return err
@@ -71,19 +70,17 @@ func (l *DeployLocal) Prepare() error {
 	return nil
 }
 
-//UpdateSource will clone sources from git to tmp folder,
-//Then copy files from temp folder to deploy folder
-//Then remove tmp folder
-func (l *DeployLocal) UpdateSource(gitPath string) error {
-	logger.Debug("Download source from git")
+// UpdateSource will clone sources from git to tmp folder,
+// Then copy files from temp folder to deploy folder
+// Then remove tmp folder
+func (l *LocalDeployer) UpdateSource(gitPath string) error {
+	logger.Debug("download source from git")
 	dir, err := ioutil.TempDir("", "deploy-")
 	if err != nil {
 		return err
 	}
 	l.tmpdir = dir
-	defer func() {
-		_ = os.RemoveAll(l.tmpdir)
-	}()
+	defer os.RemoveAll(l.tmpdir)
 	cmd := exec.Command("git", "clone", gitPath, l.tmpdir)
 	cmd.Env = os.Environ()
 	cmd.Stdout = os.Stdout
@@ -94,22 +91,23 @@ func (l *DeployLocal) UpdateSource(gitPath string) error {
 	}
 	now := strconv.FormatInt(time.Now().Unix(), 10)
 	l.timeName = now
-	err = copyer.Copy(l.tmpdir, filepath.Join(l.absPth, l.timeName))
+	l.timeNamePath = filepath.Join(l.absPth, l.timeName)
+	err = copyer.Copy(l.tmpdir, l.timeNamePath)
 	if err != nil {
-		_ = os.RemoveAll(filepath.Join(l.absPth, l.timeName))
+		_ = os.RemoveAll(l.timeNamePath)
 		return err
 	}
-	err = os.Chmod(filepath.Join(l.absPth, l.timeName), 0775)
+	err = os.Chmod(l.timeNamePath, 0775)
 	if err != nil {
-		_ = os.RemoveAll(filepath.Join(l.absPth, l.timeName))
+		_ = os.RemoveAll(l.timeNamePath)
 		return err
 	}
 	return nil
 }
 
-//MakeLinks will make links to current release
-func (l *DeployLocal) MakeLinks() error {
-	logger.Debug("Make Links")
+// MakeLinks will make links to current release
+func (l *LocalDeployer) MakeLinks() error {
+	logger.Debug("make Links")
 	err := os.Chdir(filepath.Join(l.absPth))
 	if err != nil {
 		return err
@@ -126,10 +124,10 @@ func (l *DeployLocal) MakeLinks() error {
 	return nil
 }
 
-//RunPipe execute pipe stages
-func (l *DeployLocal) RunPipe() error {
-	logger.Debug("Run pipes work")
-	err := os.Chdir(filepath.Join(l.absPth, l.timeName))
+// RunPipe execute pipe stages
+func (l *LocalDeployer) RunPipe() error {
+	logger.Debug("run pipes work")
+	err := os.Chdir(l.timeNamePath)
 	if err != nil {
 		return err
 	}
@@ -157,9 +155,9 @@ func (l *DeployLocal) RunPipe() error {
 	return nil
 }
 
-//CleanUp work after work
-func (l *DeployLocal) CleanUp(cnt int) error {
-	logger.Debug("CleanUp work")
+// CleanUp work after work
+func (l *LocalDeployer) CleanUp(cnt int) error {
+	logger.Debug("cleanUp work")
 	files, err := ioutil.ReadDir(l.absPth)
 	if err != nil {
 		return err
@@ -171,7 +169,7 @@ func (l *DeployLocal) CleanUp(cnt int) error {
 		}
 	}
 	if len(folders) > cnt {
-		logger.Debug("Clean folders")
+		logger.Debug("clean folders")
 		for _, folder := range folders[0:(len(folders) - cnt)] {
 			_ = os.RemoveAll(filepath.Join(l.absPth, folder))
 		}

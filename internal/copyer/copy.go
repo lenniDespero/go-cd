@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/lenniDespero/go-cd/internal/logger"
 )
 
 // Copy will copy file, dir, links, etc
@@ -38,8 +40,8 @@ func fileCopy(src, dest string, info os.FileInfo) (err error) {
 	}
 	defer func() {
 		dErr := f.Close()
-		if err == nil {
-			err = dErr
+		if dErr != nil {
+			logger.Warn(dErr.Error())
 		}
 	}()
 
@@ -53,8 +55,8 @@ func fileCopy(src, dest string, info os.FileInfo) (err error) {
 	}
 	defer func() {
 		dErr := s.Close()
-		if err == nil {
-			err = dErr
+		if dErr != nil {
+			logger.Warn(dErr.Error())
 		}
 	}()
 
@@ -67,7 +69,7 @@ func dirCopy(srcdir string, destdir string, info os.FileInfo) (err error) {
 	if err := os.MkdirAll(destdir, os.FileMode(0755)); err != nil {
 		return err
 	}
-	defer chmod(destdir, originalMode, &err)
+	defer chmod(destdir, originalMode)
 
 	contents, err := ioutil.ReadDir(srcdir)
 	if err != nil {
@@ -93,8 +95,9 @@ func linkCopy(src, dest string) error {
 	return os.Symlink(src, dest)
 }
 
-func chmod(dir string, mode os.FileMode, reported *error) {
-	if err := os.Chmod(dir, mode); *reported == nil {
-		*reported = err
+func chmod(dir string, mode os.FileMode) {
+	err := os.Chmod(dir, mode)
+	if err != nil {
+		logger.Warn(err.Error())
 	}
 }

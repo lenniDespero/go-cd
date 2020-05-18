@@ -1,13 +1,15 @@
 package pipe
 
 import (
+	"errors"
+
 	"github.com/lenniDespero/go-cd/internal/pkg"
 	"github.com/lenniDespero/go-cd/internal/pkg/cmd"
 	"github.com/lenniDespero/go-cd/internal/pkg/link"
 )
 
-//Pipe struct for config
-type Pipe struct {
+//Config pipe struct for config
+type Config struct {
 	Name string        `mapstructure:"name"`
 	Type string        `mapstructure:"type"`
 	Args []interface{} `mapstructure:"args"`
@@ -20,29 +22,21 @@ var Types = map[string]bool{
 }
 
 //Names of pipe stages
-var Names = map[string]interface{}{"links": &link.Link{}, "command": &cmd.Cmd{}}
+var Names = map[string]interface{}{"links": &link.Config{}, "command": &cmd.Config{}}
 
 //NamesInt return ArgsInterface for pipe stage
-var NamesInt = map[string]pkg.ArgsInterface{"links": &link.Link{}, "command": &cmd.Cmd{}}
-
-//Error implementation for package
-type Error string
-
-//Error implementation for package
-func (e Error) Error() string {
-	return string(e)
-}
+var NamesInt = map[string]pkg.ArgsInterface{"links": &link.Config{}, "command": &cmd.Config{}}
 
 //Errors
-const (
-	NoPipeTypeError Error = "no type in pipe"
-	NotInPipesError Error = "not in legal types (link or command)"
-	NoPipeName      Error = "no pipe name in pipes"
-	NoPipeArgs      Error = "no args in pipe"
+var (
+	NoPipeTypeError = errors.New("no type in pipe")
+	NotInPipesError = errors.New("not in legal types (link or command)")
+	NoPipeName      = errors.New("no pipe name in pipes")
+	NoPipeArgs      = errors.New("no args in pipe")
 )
 
 //CheckConfig will check config for errors
-func (pipe Pipe) CheckConfig() error {
+func (pipe Config) CheckConfig() error {
 	if pipe.Name == "" {
 		return NoPipeName
 	}

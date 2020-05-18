@@ -5,20 +5,19 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/lenniDespero/go-cd/internal/pkg/host"
-	"github.com/lenniDespero/go-cd/internal/pkg/pipe"
-
 	"github.com/mitchellh/mapstructure"
 
+	"github.com/lenniDespero/go-cd/internal/pkg/host"
+	"github.com/lenniDespero/go-cd/internal/pkg/pipe"
 	"github.com/pkg/errors"
 )
 
-//Target struct for config
-type Target struct {
-	Type string      `mapstructure:"type"`
-	Host host.Host   `mapstructure:"host"`
-	Path string      `mapstructure:"path"`
-	Pipe []pipe.Pipe `mapstructure:"pipe"`
+//Config target struct for config
+type Config struct {
+	Type string        `mapstructure:"type"`
+	Host host.Config   `mapstructure:"host"`
+	Path string        `mapstructure:"path"`
+	Pipe []pipe.Config `mapstructure:"pipe"`
 }
 
 //Types of targets
@@ -27,25 +26,22 @@ var Types = map[string]bool{
 	"host":  true,
 }
 
-//Error implementation for package
-type Error string
-
-//Error implementation for package
-func (e Error) Error() string {
-	return string(e)
-}
+const (
+	TYPE_LOCAL string = "local"
+	TYPE_HOST  string = "host"
+)
 
 //Errors
-const (
-	NoTypeError     Error = "no type in target"
-	NotInTypesError Error = "not in legal types (local or host)"
-	NoHostError     Error = "no host in target"
-	NoPathError     Error = "no path to deploy in target"
-	NoPipesError    Error = "no pipes in target"
+var (
+	NoTypeError     = errors.New("no type in target")
+	NotInTypesError = errors.New("not in legal types (local or host)")
+	NoHostError     = errors.New("no host in target")
+	NoPathError     = errors.New("no path to deploy in target")
+	NoPipesError    = errors.New("no pipes in target")
 )
 
 //CheckConfig will check config for errors
-func (target Target) CheckConfig() error {
+func (target Config) CheckConfig() error {
 	if target.Type == "" {
 		return NoTypeError
 	}
@@ -53,7 +49,7 @@ func (target Target) CheckConfig() error {
 		return errors.Wrap(NotInTypesError, fmt.Sprintf("type %s ", target.Type))
 	}
 	if target.Type == "host" {
-		if reflect.DeepEqual(target.Host, host.Host{}) {
+		if reflect.DeepEqual(target.Host, host.Config{}) {
 			return NoHostError
 		}
 		err := target.Host.CheckConfig()

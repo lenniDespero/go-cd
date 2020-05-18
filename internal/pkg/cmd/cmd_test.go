@@ -5,10 +5,12 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/maraino/testify/require"
 )
 
-func prepareCmd() Cmd {
-	return Cmd{
+func prepareCmd() Config {
+	return Config{
 		Command: "ln",
 		Args:    []string{"-s", "pathFrom", "PathTo"},
 	}
@@ -17,41 +19,27 @@ func prepareCmd() Cmd {
 func TestCmd_CheckConfig(t *testing.T) {
 	cmd := prepareCmd()
 	err := cmd.CheckConfig()
-	if err != nil {
-		t.Errorf("Unexpected error: %s, expected nil", err.Error())
-	}
+	require.Nil(t, err)
 	cmd.Command = ""
 	err = cmd.CheckConfig()
-	if err != nil {
-		if err != NoCommandError {
-			t.Errorf("Unexpected error: %s, expected: %s", err.Error(), NoCommandError.Error())
-		}
-	} else {
-		t.Errorf("Expected error, get nil")
-	}
+	require.NotNil(t, err)
+	require.Error(t, err, NoCommandError)
 }
 
 func TestCmd_ExecuteOnLocal(t *testing.T) {
 	cmd := prepareCmd()
 	dir, err := ioutil.TempDir("", "test-")
-	if err != nil {
-		t.Errorf("Unexpected error: %s, expected nil", err.Error())
-	}
+	require.Nil(t, err)
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
 	err = os.Chdir(dir)
-	if err != nil {
-		t.Errorf("Unexpected error: %s, expected nil", err.Error())
-	}
+	require.Nil(t, err)
 	err = cmd.ExecuteOnLocal()
-	if err != nil {
-		t.Errorf("Unexpected error: %s, expected nil", err.Error())
-	}
+	require.Nil(t, err)
 	err = cmd.ExecuteOnLocal()
-	if err == nil {
-		t.Errorf("Expected error, get nil")
-	} else if err.Error() != "exit status 1" {
+	require.NotNil(t, err)
+	if err.Error() != "exit status 1" {
 		t.Errorf("Unexpected error: %s, expected exit status 1", err.Error())
 	}
 }

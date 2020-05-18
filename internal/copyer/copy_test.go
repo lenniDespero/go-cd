@@ -5,13 +5,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/maraino/testify/require"
 )
 
 func TestCopy(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test-deploy-")
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
@@ -19,52 +19,38 @@ func TestCopy(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(dir + "-new")
 	}()
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 }
 
 func TestCopyRecursive(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test-deploy-")
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
 	err = Copy(dir, filepath.Join(dir, "new"))
 
-	if err == nil {
-		t.Errorf("Expcted err: file name too long, nill given")
-	}
+	require.NotNil(t, err)
 }
 
 func TestCopyWithLink(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test-deploy-")
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
 	err = os.Symlink(filepath.Join(dir, "PathFrom"), filepath.Join(dir, "link"))
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 	err = Copy(dir, dir+"-new")
 	defer func() {
 		_ = os.RemoveAll(dir + "-new")
 	}()
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 }
 
 func TestCopyWrongPath(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test-deploy-")
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
@@ -76,21 +62,15 @@ func TestCopyWrongPath(t *testing.T) {
 
 func TestCopyFiles(t *testing.T) {
 	dir, err := ioutil.TempDir("", "test-deploy-")
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
 	err = ioutil.WriteFile(filepath.Join(dir, "file"), []byte{}, 0500)
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 	err = Copy(dir, dir+"new")
 	defer func() {
 		_ = os.RemoveAll(dir + "new")
 	}()
-	if err != nil {
-		t.Errorf("Unexpected err: %s", err.Error())
-	}
+	require.Nil(t, err)
 }

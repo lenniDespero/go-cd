@@ -4,48 +4,50 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"reflect"
-
-	"github.com/lenniDespero/go-cd/internal/logger"
-
-	"github.com/lenniDespero/go-cd/internal/pkg/config"
-	"github.com/lenniDespero/go-cd/internal/pkg/target"
-
-	"github.com/lenniDespero/go-cd/internal/deployer"
 
 	"github.com/spf13/pflag"
+
+	"github.com/lenniDespero/go-cd/internal/deployer"
+	"github.com/lenniDespero/go-cd/internal/logger"
+	"github.com/lenniDespero/go-cd/internal/pkg/config"
+)
+
+var (
+	configPath   = flag.String("config", "deploy.yml", "path to configuration flag")
+	deployTarget = flag.String("target", "", "target to deploy")
+	configTest   = flag.Bool("test", false, "only test config")
 )
 
 func main() {
-	var configPath = flag.String("config", "deploy.yml", "path to configuration flag")
-	var deployTarget = flag.String("target", "", "target to deploy")
-	var configTest = flag.Bool("test", false, "only test config")
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	flag.Parse()
-	var C config.Config
-	err := config.ReadConfig(&C, *configPath)
+
+	c, err := config.ReadConfig(*configPath)
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
-	logger.Info("Config test complete: all ok")
+	logger.Info("config test complete: all ok")
 	if *configTest {
-		logger.Info("Config test mode. Exit")
+		logger.Info("config test mode, exit")
 		os.Exit(0)
 	}
-	logger.Notice(fmt.Sprintf("Deployment script for project '%s'", C.ProjectName))
+
+	logger.Notice(fmt.Sprintf("deployment script for project '%s'", c.ProjectName))
 	if *deployTarget == "" {
-		logger.Fatal("No target to deploy")
+		logger.Fatal("no target to deploy")
 	}
-	if reflect.DeepEqual(C.Targets[*deployTarget], target.Target{}) {
-		logger.Fatal(fmt.Sprintf("Target '%s' not found in config.", *deployTarget))
+	_, ok := c.Targets[*deployTarget]
+	if !ok {
+		logger.Fatal(fmt.Sprintf("target '%s' not found in config", *deployTarget))
 	}
-	jobber, err := deployer.GetDeployer(C, *deployTarget)
+
+	jobber, err := deployer.NewDeployer(c, *deployTarget)
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("Deployer init error %s", err))
+		logger.Fatal(fmt.Sprintf("deployer init error %s", err))
 	}
-	err = jobber.Run()
-	if err != nil {
+
+	if err = jobber.Run(); err != nil {
 		logger.Fatal(err.Error())
 	}
-	logger.Info("All done!")
+	logger.Info("all done")
 }

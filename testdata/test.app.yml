@@ -4,7 +4,7 @@ count: 2
 targets:
   devel:
     type: local
-    path: "../../../testdata/releases"
+    path: "../../testdata/releases"
     pipe:
       - name: make links
         type: links

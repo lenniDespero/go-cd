@@ -6,9 +6,9 @@
 Simple golang deploy script for web-apps(like php).
 It will get source code from git, run work pipes from config and make symlink to current deploy folder.
 
-## Instalation
+## Installation
 You can:
-- Build from source `GOOS={target os} go build -o ./bin/deployer ./cmd/main.go` 
+- Build from source `GOOS={target os} GOARCH={target arch} go build -o ./bin/deployer ./cmd/main.go` 
 - Use make for build
 - Take prebuild versions from bin/  
 

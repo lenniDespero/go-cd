@@ -1,6 +1,6 @@
 package deployer
 
-//DeployInterface for deploy runners
+// DeployInterface for deploy runners
 type DeployInterface interface {
 	Prepare() error
 	UpdateSource(git string) error

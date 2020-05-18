@@ -1,32 +1,25 @@
 package cmd
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-//Cmd part of config
-type Cmd struct {
+// Config cmd part of config
+type Config struct {
 	Command string   `mapstructure:"command" json:"command"`
 	Args    []string `mapstructure:"args" json:"args"`
 }
 
-//Error type for package cmd
-type Error string
-
-//Error interface implementation
-func (e Error) Error() string {
-	return string(e)
-}
-
 //Errors
-const (
-	NoCommandError Error = "no command"
+var (
+	NoCommandError = errors.New("no command")
 )
 
 //CheckConfig will check config for errors
-func (command Cmd) CheckConfig() error {
+func (command Config) CheckConfig() error {
 	if command.Command == "" {
 		return NoCommandError
 	}
@@ -34,7 +27,7 @@ func (command Cmd) CheckConfig() error {
 }
 
 //ExecuteOnLocal run cmd on local target
-func (command Cmd) ExecuteOnLocal() error {
+func (command Config) ExecuteOnLocal() error {
 	cmdString := command.Command
 	var args []string
 	args = append(args, command.Args...)
@@ -50,7 +43,7 @@ func (command Cmd) ExecuteOnLocal() error {
 }
 
 //GetRemoteCommand prepare cmd string for remote machine
-func (command Cmd) GetRemoteCommand() string {
+func (command Config) GetRemoteCommand() string {
 	comString := []string{command.Command}
 	comString = append(comString, command.Args...)
 	return strings.Join(comString, " ")

@@ -3,22 +3,20 @@ package deployer
 import (
 	"errors"
 
+	"github.com/lenniDespero/go-cd/internal/logger"
 	"github.com/lenniDespero/go-cd/internal/pkg/config"
-
-	"github.com/lenniDespero/go-cd/internal/deployer/host"
-
-	"github.com/lenniDespero/go-cd/internal/deployer/local"
+	"github.com/lenniDespero/go-cd/internal/pkg/target"
 )
 
 // DeployRunner stores git, count releases to keep and deployer
-type DeployRunner struct {
+type Deployer struct {
 	deployer DeployInterface
 	git      string
 	rCount   int
 }
 
-//Run deploy stages
-func (d DeployRunner) Run() error {
+// Run deploy stages
+func (d Deployer) Run() error {
 	err := d.deployer.Prepare()
 	if err != nil {
 		return err
@@ -26,37 +24,41 @@ func (d DeployRunner) Run() error {
 	defer func() {
 		ferr := d.deployer.CleanUp(d.rCount)
 		if ferr != nil {
-			err = ferr
+			logger.Warn(ferr.Error())
 		}
 	}()
+
 	err = d.deployer.UpdateSource(d.git)
 	if err != nil {
 		return err
 	}
+
 	err = d.deployer.RunPipe()
 	if err != nil {
 		return err
 	}
+
 	err = d.deployer.MakeLinks()
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-//GetDeployer return DeployRunner
-func GetDeployer(config config.Config, target string) (DeployRunner, error) {
-	d := DeployRunner{}
-	d.rCount = config.Count
-	d.git = config.Git
-	var err error
-	if config.Targets[target].Type == "local" {
-		d.deployer, err = local.InitDeployer(config.Targets[target])
-		return d, err
-	} else if config.Targets[target].Type == "host" {
-		d.deployer, err = host.InitDeployer(config.Targets[target])
-		return d, err
-	}
+// NewDeployer return Deployer
+func NewDeployer(config config.Config, targetString string) (Deployer, error) {
+	d := Deployer{rCount: config.Count, git: config.Git}
 
-	return d, errors.New("unknown deploy runner")
+	var err error
+	switch config.Targets[targetString].Type {
+	case target.TYPE_LOCAL:
+		d.deployer, err = NewLocalDeployer(config.Targets[targetString])
+		return d, err
+	case target.TYPE_HOST:
+		d.deployer, err = NewHosDeployer(config.Targets[targetString])
+		return d, err
+	default:
+		return d, errors.New("unknown deploy runner")
+	}
 }

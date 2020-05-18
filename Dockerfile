@@ -1,4 +1,4 @@
-FROM golang as builder
+FROM golang:1.14 as builder
 WORKDIR /app
 ## Copy go mod and sum files
 COPY go.mod ./

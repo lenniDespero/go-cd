@@ -1,33 +1,26 @@
 package link
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 )
 
-//Link struct for config
-type Link struct {
+//Config link struct for config
+type Config struct {
 	From string `mapstructure:"from" json:"from"`
 	To   string `mapstructure:"to" json:"to"`
 }
 
-//Error implementation for package
-type Error string
-
-//Error implementation for package
-func (e Error) Error() string {
-	return string(e)
-}
-
 //Errors
-const (
-	NoLinkFromError Error = "no link from"
-	NoLinkToError   Error = "no link to"
+var (
+	NoLinkFromError = errors.New("no link from")
+	NoLinkToError   = errors.New("no link to")
 )
 
 //CheckConfig will check config for errors
-func (link Link) CheckConfig() error {
+func (link Config) CheckConfig() error {
 	if link.From == "" {
 		return NoLinkFromError
 	}
@@ -38,7 +31,7 @@ func (link Link) CheckConfig() error {
 }
 
 //ExecuteOnLocal make link on local machine
-func (link Link) ExecuteOnLocal() error {
+func (link Config) ExecuteOnLocal() error {
 	from, err := filepath.Abs(link.From)
 	if err != nil {
 		return err
@@ -55,6 +48,6 @@ func (link Link) ExecuteOnLocal() error {
 }
 
 //GetRemoteCommand prepare command to make link on remote machine
-func (link Link) GetRemoteCommand() string {
+func (link Config) GetRemoteCommand() string {
 	return fmt.Sprintf("ln -s %s %s", link.From, link.To)
 }

@@ -3,10 +3,12 @@ package host
 import (
 	"strings"
 	"testing"
+
+	"github.com/maraino/testify/require"
 )
 
-func prepareHost() Host {
-	return Host{
+func prepareHost() Config {
+	return Config{
 		Host:     "someHost",
 		Port:     "123",
 		User:     "username",
@@ -16,19 +18,13 @@ func prepareHost() Host {
 	}
 }
 
-func check(t *testing.T, host Host, e Error) {
+func check(t *testing.T, host Config, e error) {
 	err := host.CheckConfig()
-	if err != nil {
-		if err != e {
-			t.Errorf("Unexpected error: %s, expected: %s", err.Error(), e.Error())
-		}
-	} else {
-		t.Errorf("Expected error, get nil")
-	}
+	require.Error(t, err, e)
 }
 
 func TestHost_GetConnectionStringWithPort(t *testing.T) {
-	host := Host{
+	host := Config{
 		Host: "someHostname",
 		Port: "1234",
 	}
@@ -40,7 +36,7 @@ func TestHost_GetConnectionStringWithPort(t *testing.T) {
 }
 
 func TestHost_GetConnectionStringWithoutPort(t *testing.T) {
-	host := Host{
+	host := Config{
 		Host: "someHostname",
 	}
 	str := host.GetConnectionString()
@@ -53,9 +49,7 @@ func TestHost_GetConnectionStringWithoutPort(t *testing.T) {
 func TestHost_CheckConfig(t *testing.T) {
 	host := prepareHost()
 	err := host.CheckConfig()
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
-	}
+	require.Nil(t, err)
 }
 
 func TestHost_CheckConfigNoHost(t *testing.T) {

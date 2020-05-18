@@ -4,42 +4,34 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/maraino/testify/require"
 	"github.com/pkg/errors"
 
 	"github.com/lenniDespero/go-cd/internal/pkg/host"
-
 	"github.com/lenniDespero/go-cd/internal/pkg/pipe"
 )
 
-func prepareTarget() Target {
-	return Target{
+func prepareTarget() Config {
+	return Config{
 		Type: "local",
-		Host: host.Host{},
+		Host: host.Config{},
 		Path: "newPath",
-		Pipe: []pipe.Pipe{
+		Pipe: []pipe.Config{
 			{Name: "some links", Type: "links", Args: []interface{}{map[string]interface{}{"from": "pathFrom", "to": "pathTo"}}},
 			{Name: "some Cmd", Type: "command", Args: []interface{}{map[string]interface{}{"command": "ls", "args": []string{"ls"}}}},
 		},
 	}
 }
 
-func check(t *testing.T, target Target, e error) {
+func check(t *testing.T, target Config, e error) {
 	err := target.CheckConfig()
-	if err != nil {
-		if err != e {
-			t.Errorf("Unexpected error: %s, expected: %s", err.Error(), e.Error())
-		}
-	} else {
-		t.Errorf("Expected error, get nil")
-	}
+	require.Error(t, err, e)
 }
 
 func TestTarget_CheckConfig(t *testing.T) {
 	target := prepareTarget()
 	err := target.CheckConfig()
-	if err != nil {
-		t.Errorf("Err: %s", err.Error())
-	}
+	require.Nil(t, err)
 }
 
 func TestTarget_CheckConfigNoType(t *testing.T) {
@@ -53,11 +45,7 @@ func TestTarget_CheckConfigNotInTypes(t *testing.T) {
 	target.Type = "strange"
 	newErr := errors.Wrap(NotInTypesError, fmt.Sprintf("type %s ", target.Type))
 	err := target.CheckConfig()
-	if err != nil {
-		if err.Error() != newErr.Error() {
-			t.Errorf("Errors  %s - %s not equal", err.Error(), newErr.Error())
-		}
-	}
+	require.Error(t, err, newErr)
 }
 
 func TestTarget_CheckConfigNoHost(t *testing.T) {
@@ -74,7 +62,7 @@ func TestTarget_CheckConfigNoPath(t *testing.T) {
 
 func TestTarget_CheckConfigNoPipes(t *testing.T) {
 	target := prepareTarget()
-	target.Pipe = []pipe.Pipe{}
+	target.Pipe = []pipe.Config{}
 	check(t, target, NoPipesError)
 }
 
@@ -82,7 +70,5 @@ func TestTarget_CheckConfigBadPipes(t *testing.T) {
 	target := prepareTarget()
 	target.Pipe[1].Type = "xz"
 	err := target.CheckConfig()
-	if err == nil {
-		t.Errorf("Expected err get nill")
-	}
+	require.NotNil(t, err)
 }

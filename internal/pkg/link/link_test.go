@@ -5,10 +5,12 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/maraino/testify/require"
 )
 
-func prepareLink() Link {
-	return Link{
+func prepareLink() Config {
+	return Config{
 		From: "somePathFrom",
 		To:   "SomePathTo",
 	}
@@ -26,58 +28,37 @@ func TestLink_GetRemoteCommand(t *testing.T) {
 func TestLink_CheckConfig(t *testing.T) {
 	link := prepareLink()
 	err := link.CheckConfig()
-	if err != nil {
-		t.Errorf("Unexpected error: %s, expected nil", err.Error())
-	}
+	require.Nil(t, err)
 }
 
 func TestLink_CheckConfigNoPathTo(t *testing.T) {
 	link := prepareLink()
 	link.To = ""
 	err := link.CheckConfig()
-	if err != nil {
-		if err != NoLinkToError {
-			t.Errorf("Unexpected error: %s, expected: %s", err.Error(), NoLinkToError.Error())
-		}
-	} else {
-		t.Errorf("Expected error, get nil")
-	}
+	require.Error(t, err, NoLinkToError)
 }
 
 func TestLink_CheckConfigNoPathFrom(t *testing.T) {
 	link := prepareLink()
 	link.From = ""
 	err := link.CheckConfig()
-	if err != nil {
-		if err != NoLinkFromError {
-			t.Errorf("Unexpected error: %s, expected: %s", err.Error(), NoLinkFromError.Error())
-		}
-	} else {
-		t.Errorf("Expected error, get nil")
-	}
+	require.Error(t, err, NoLinkFromError)
 }
 
 func TestLink_ExecuteOnLocal(t *testing.T) {
 	link := prepareLink()
 	dir, err := ioutil.TempDir("", "test-")
-	if err != nil {
-		t.Errorf("Unexpected error: %s, expected nil", err.Error())
-	}
+	require.Nil(t, err)
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
 	err = os.Chdir(dir)
-	if err != nil {
-		t.Errorf("Unexpected error: %s, expected nil", err.Error())
-	}
+	require.Nil(t, err)
 	err = link.ExecuteOnLocal()
-	if err != nil {
-		t.Errorf("Unexpected error: %s, expected nil", err.Error())
-	}
+	require.Nil(t, err)
 	err = link.ExecuteOnLocal()
-	if err == nil {
-		t.Errorf("Expected error, get nil")
-	} else if os.IsExist(err) == false {
+	require.NotNil(t, err)
+	if os.IsExist(err) == false {
 		t.Errorf("Unexpected error: %s, expected:%s", err.Error(), os.ErrExist.Error())
 	}
 }
