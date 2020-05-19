@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -79,7 +81,7 @@ func (l *LocalDeployer) Prepare() error {
 func (l *LocalDeployer) UpdateSource(gitPath string) error {
 	logger.Debug("download source from git")
 	now := strconv.FormatInt(time.Now().Unix(), 10)
-	l.timeName = now
+	l.timeName = strings.Join([]string{now, strconv.Itoa(rand.Int())}, "-")
 	l.timeNamePath = filepath.Join(l.absPth, l.timeName)
 
 	dir, err := ioutil.TempDir("", fmt.Sprintf("deploy-%s-", l.timeName))
