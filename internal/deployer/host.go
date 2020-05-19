@@ -71,7 +71,7 @@ func (h HostDeployer) Prepare() error {
 // UpdateSource will download source code
 func (h *HostDeployer) UpdateSource(git string) error {
 	logger.Debug("download source from git")
-	now := strconv.FormatInt(time.Now().Unix(), 10)
+	now := strconv.FormatInt(time.Now().UnixNano(), 10)
 	timeName := now
 	h.timeNamePath = filepath.Join(h.conf.Path, timeName)
 
