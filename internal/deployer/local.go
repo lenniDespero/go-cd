@@ -3,14 +3,11 @@ package deployer
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -80,11 +77,7 @@ func (l *LocalDeployer) Prepare() error {
 // Then remove tmp folder
 func (l *LocalDeployer) UpdateSource(gitPath string) error {
 	logger.Debug("download source from git")
-	now := strconv.FormatInt(time.Now().Unix(), 10)
-	l.timeName = strings.Join([]string{now, strconv.Itoa(rand.Int())}, "-")
-	l.timeNamePath = filepath.Join(l.absPth, l.timeName)
-
-	dir, err := ioutil.TempDir("", fmt.Sprintf("deploy-%s-", l.timeName))
+	dir, err := ioutil.TempDir("", "deploy-")
 	if err != nil {
 		return err
 	}
@@ -99,6 +92,9 @@ func (l *LocalDeployer) UpdateSource(gitPath string) error {
 	if err != nil {
 		return err
 	}
+	now := strconv.FormatInt(time.Now().UnixNano(), 10)
+	l.timeName = now
+	l.timeNamePath = filepath.Join(l.absPth, l.timeName)
 
 	err = copyer.Copy(l.tmpdir, l.timeNamePath)
 	if err != nil {

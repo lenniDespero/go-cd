@@ -8,7 +8,7 @@ before_script:
 
 script:
   - golangci-lint run       # run a bunch of code checkers/linters in parallel
-  - go test -race -count 100 ./...  # Run all the tests with the race detector enabled exclude local_test.go
+  - go test -race -count 100 -failfast ./...  # Run all the tests with the race detector enabled exclude local_test.go
   - go test -coverprofile=coverage.txt -covermode=atomic ./... # coverage
   - GCO_ENABLED=0 go build -o ./bin/deployer ./cmd/main.go #build app
 
