@@ -84,7 +84,7 @@ func (l *LocalDeployer) UpdateSource(gitPath string) error {
 	l.tmpdir = dir
 	defer os.RemoveAll(l.tmpdir)
 
-	cmd := exec.Command("git", "clone", gitPath, l.tmpdir)
+	cmd := exec.Command("git", "clone", gitPath, l.tmpdir, "--depth=1")
 	cmd.Env = os.Environ()
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

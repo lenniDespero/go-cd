@@ -75,7 +75,7 @@ func (h *HostDeployer) UpdateSource(git string) error {
 	timeName := now
 	h.timeNamePath = filepath.Join(h.conf.Path, timeName)
 
-	script := h.client.Cmd(fmt.Sprintf("git clone %s %s", git, h.timeNamePath))
+	script := h.client.Cmd(fmt.Sprintf("git clone %s %s --depth=1", git, h.timeNamePath))
 	script.SetStdio(os.Stdout, os.Stderr)
 	err := script.Run()
 	if err != nil {
