@@ -1,0 +1,35 @@
+version: "3.5"
+services:
+  ssh:
+    build:
+      context: ..
+      dockerfile: ./deployment/ssh/Dockerfile
+    container_name: ssh-server
+    hostname: openssh-server #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+      - SUDO_ACCESS=true #optional
+      - PASSWORD_ACCESS=true #optional
+      - USER_PASSWORD=password #optional
+      - USER_NAME=ssh-user #optional
+    ports:
+      - 2222:2222
+    restart: always
+    networks:
+      - go-cd-test
+  tests:
+    build:
+      context: ..
+      dockerfile: ./deployment/tests/Dockerfile
+    container_name: tests
+    depends_on:
+      - ssh
+    networks:
+      - go-cd-test
+#    tty: true
+networks:
+  go-cd-test:
+     name: go-cd-test
+

@@ -22,25 +22,19 @@ targets:
           - command: "ls"
             args:
               - "-la"
-  prod:
+  tests:
     type: host
     host:
-      host: prod.host.ru
+      host: ssh-server
+      port: 2222
       auth: password
-      user: root
+      user: ssh-user
       password: password
-    path: "/var/www/releases/"
+    path: "/var/releases/"
     pipe:
       - name: make some work
         type: command
         args:
-          - command: "composer"
+          - command: "ls"
             args:
-              - "install"
-      - name: make links
-        type: links
-        args:
-          - from: "pathFrom"
-            to: "PathTo"
-          - from: "pathFrom2"
-            to: "PathTo2"
+              - "-lah"
