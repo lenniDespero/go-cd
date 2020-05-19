@@ -3,6 +3,7 @@ package deployer
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -77,7 +78,11 @@ func (l *LocalDeployer) Prepare() error {
 // Then remove tmp folder
 func (l *LocalDeployer) UpdateSource(gitPath string) error {
 	logger.Debug("download source from git")
-	dir, err := ioutil.TempDir("", "deploy-")
+	now := strconv.FormatInt(time.Now().Unix(), 10)
+	l.timeName = now
+	l.timeNamePath = filepath.Join(l.absPth, l.timeName)
+
+	dir, err := ioutil.TempDir("", fmt.Sprintf("deploy-%s-", l.timeName))
 	if err != nil {
 		return err
 	}
@@ -92,9 +97,6 @@ func (l *LocalDeployer) UpdateSource(gitPath string) error {
 	if err != nil {
 		return err
 	}
-	now := strconv.FormatInt(time.Now().Unix(), 10)
-	l.timeName = now
-	l.timeNamePath = filepath.Join(l.absPth, l.timeName)
 
 	err = copyer.Copy(l.tmpdir, l.timeNamePath)
 	if err != nil {

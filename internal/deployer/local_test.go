@@ -1,6 +1,3 @@
-//+build !race
-
-// Travis CI стал падать
 package deployer
 
 import (
@@ -55,11 +52,10 @@ func TestDeployLocal_PrepareFailPath(t *testing.T) {
 }
 
 func TestDeployLocal_UpdateSourceBadGit(t *testing.T) {
-	conf := prepareConfig(t)
 	deployer := getDeployer(t)
 	err := deployer.Prepare()
 	require.Nil(t, err)
-	err = deployer.UpdateSource(conf.Git + "fsuegjsehfgjhseb")
+	err = deployer.UpdateSource("fsuegjsehfgjhseb")
 	require.NotNil(t, err)
 	deployer.removeLock(t)
 }
