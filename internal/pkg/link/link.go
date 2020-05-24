@@ -40,7 +40,6 @@ func (link Config) ExecuteOnLocal() error {
 	if err != nil {
 		return err
 	}
-
 	err = os.Symlink(from, to)
 	if err != nil {
 		return err
