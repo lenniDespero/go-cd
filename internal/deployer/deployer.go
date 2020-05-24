@@ -32,10 +32,12 @@ func (d Deployer) Run() error {
 	if err != nil {
 		return err
 	}
+
 	err = d.deployer.RunPipe()
 	if err != nil {
 		return err
 	}
+
 	err = d.deployer.MakeLinks()
 	if err != nil {
 		return err
